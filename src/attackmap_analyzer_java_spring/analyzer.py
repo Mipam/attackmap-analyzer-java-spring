@@ -505,6 +505,14 @@ def _route_path(prefix: str, suffix: str) -> str:
     return path if path.startswith("/") else "/" + path
 
 
+# Extraction protocol this analyzer declares (AR082 / AC-403). Pinned
+# explicitly so core's declared_extraction_protocol() reports "2.0" instead
+# of inheriting the SDK default. Plugins written against protocol 1.0 keep
+# loading indefinitely: core lifts their ScanResult into the v2
+# ExtractionResult container via attackmap.extraction.adapters.
+EXTRACTION_PROTOCOL_VERSION = "2.0"
+
+
 def _module_name_from_pom(pom_path: Path, root: Path | None = None) -> str | None:
     text = read_source(pom_path, root=root)
     if text is None:
@@ -592,6 +600,11 @@ def _member_routes(
 
 
 class JavaSpringAnalyzer:
+    # Explicit protocol declaration; see the module-level
+    # EXTRACTION_PROTOCOL_VERSION constant above (AR082 / AC-403).
+    # V1 payloads still load via the core v1 adapter.
+    EXTRACTION_PROTOCOL_VERSION = EXTRACTION_PROTOCOL_VERSION
+
     metadata = AnalyzerMetadata(
         name="java-spring",
         display_name="Java/Kotlin Spring Boot Analyzer",
